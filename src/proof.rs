@@ -77,11 +77,11 @@ impl Proof {
                     self.modus_ponens(p, q)
                 },
                 &Reason::ModusPonens(a, a_to_b) => {
-                    let a_st = &proof.props[a].0;
+                    let a_pr = &proof.props[a].0;
                     let b = proof.props[a_to_b].0.conclusion().expect("invalid MP");
                     let h_to_a = map[&a];
                     let h_to_a_to_b = map[&a_to_b];
-                    let p = self.prove_axiom(Rc::new(axiom_2(h.clone(), a_st.clone(), b.clone())), 2);
+                    let p = self.prove_axiom(Rc::new(axiom_2(h.clone(), a_pr.clone(), b.clone())), 2);
                     let q = self.modus_ponens(h_to_a_to_b, p);
                     self.modus_ponens(h_to_a, q)
                 },
@@ -89,6 +89,23 @@ impl Proof {
             map.insert(prop, mapped_prop);
         }
         self.list.last().copied()
+    }
+
+    pub fn deduct_from(&mut self, h_to_a: isize, h_to_a_to_b: isize) -> isize {
+        let h = self.props[h_to_a].0.premise().expect("invalid deduction").clone();
+        let a = self.props[h_to_a].0.conclusion().expect("invalid deduction").clone();
+        let b = self.props[h_to_a_to_b].0
+            .conclusion().expect("invalid deduction")
+            .conclusion().expect("invalid deduction")
+            .clone()
+        ;
+        let p = self.prove_axiom(Rc::new(axiom_2(h.clone(), a.clone(), b.clone())), 2);
+        let q = self.modus_ponens(h_to_a_to_b, p);
+        self.modus_ponens(h_to_a, q)
+    }
+
+    pub fn prop(&self, i: isize) -> &Rc<Prop> {
+        &self.props[i].0
     }
 }
 

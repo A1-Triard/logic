@@ -7,7 +7,6 @@ mod prop;
 use prop::Prop;
 
 mod axioms;
-use axioms::*;
 
 mod proof;
 use proof::Proof;
@@ -50,9 +49,8 @@ fn main() -> ExitCode {
         Err(e) => return e,
     };
     let mut proof = Proof::new();
-    proof.prove_hypothesis(a.clone());
-    let mut d = Proof::new();
-    d.deduct(&proof, &a);
-    print!("{}", d.display(&atoms));
+    let a_to_b = proof.prove_hypothesis(Rc::new(Prop::To(a.clone(), b.clone())));
+    prove_not_a_or_b(&mut proof, a_to_b);
+    print!("{}", proof.display(&atoms));
     ExitCode::SUCCESS
 }
