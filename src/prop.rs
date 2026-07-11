@@ -100,6 +100,13 @@ impl Prop {
             _ => None,
         }
     }
+
+    pub fn not_arg(&self) -> Option<&Rc<Prop>> {
+        match self {
+            Prop::Not(x) => Some(x),
+            _ => None,
+        }
+    }
 }
 
 fn display_unop<A: Display>(
