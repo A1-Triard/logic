@@ -1,9 +1,11 @@
 use arena_container::Arena;
+use crate::axioms::*;
 use crate::prop::Prop;
 use hashbrown::HashMap;
 use std::fmt::{self, Display, Formatter, Debug};
 use std::rc::Rc;
 
+#[derive(Eq, PartialEq, Clone)]
 pub enum Reason {
     Axiom(u8),
     Hypothesis,
@@ -49,6 +51,44 @@ impl Proof {
         let id = self.props.insert(|id| ((b, Reason::ModusPonens(a, a_to_b)), id));
         self.list.push(id);
         id
+    }
+
+    pub fn prove_a_to_a(&mut self, a: Rc<Prop>) -> isize {
+        let a_to_a = Rc::new(Prop::To(a.clone(), a.clone()));
+        let p = self.prove_axiom(Rc::new(axiom_2(a.clone(), a_to_a.clone(), a.clone())), 2);
+        let q = self.prove_axiom(Rc::new(axiom_1(a.clone(), a_to_a.clone())), 1);
+        let r = self.modus_ponens(q, p);
+        let s = self.prove_axiom(Rc::new(axiom_1(a.clone(), a)), 1);
+        self.modus_ponens(s, r)
+    }
+
+    pub fn deduct(&mut self, proof: &Proof, h: &Rc<Prop>) -> Option<isize> {
+        let mut map = HashMap::new();
+        for &prop in &proof.list {
+            let mapped_prop = match &proof.props[prop].1 {
+                Reason::Hypothesis if &proof.props[prop].0 == h => {
+                    self.prove_a_to_a(h.clone())
+                },
+                Reason::Hypothesis | Reason::Axiom(_) => {
+                    let prop = &proof.props[prop];
+                    let p = self.props.insert(|id| (prop.clone(), id));
+                    self.list.push(p);
+                    let q = self.prove_axiom(Rc::new(axiom_1(prop.0.clone(), h.clone())), 1);
+                    self.modus_ponens(p, q)
+                },
+                &Reason::ModusPonens(a, a_to_b) => {
+                    let a_st = &proof.props[a].0;
+                    let b = proof.props[a_to_b].0.conclusion().expect("invalid MP");
+                    let h_to_a = map[&a];
+                    let h_to_a_to_b = map[&a_to_b];
+                    let p = self.prove_axiom(Rc::new(axiom_2(h.clone(), a_st.clone(), b.clone())), 2);
+                    let q = self.modus_ponens(h_to_a_to_b, p);
+                    self.modus_ponens(h_to_a, q)
+                },
+            };
+            map.insert(prop, mapped_prop);
+        }
+        self.list.last().copied()
     }
 }
 

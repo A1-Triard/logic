@@ -50,7 +50,9 @@ fn main() -> ExitCode {
         Err(e) => return e,
     };
     let mut proof = Proof::new();
-    prove_a_to_a(a, &mut proof);
-    print!("{}", proof.display(&atoms));
+    proof.prove_hypothesis(a.clone());
+    let mut d = Proof::new();
+    d.deduct(&proof, &a);
+    print!("{}", d.display(&atoms));
     ExitCode::SUCCESS
 }

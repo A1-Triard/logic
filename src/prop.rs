@@ -3,6 +3,7 @@ use hashbrown::hash_map::Entry;
 use std::fmt::{self, Display, Formatter, Debug};
 use std::rc::Rc;
 
+#[derive(Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub enum Prop {
     Atom(usize),
     Not(Rc<Prop>),
