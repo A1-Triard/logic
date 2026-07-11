@@ -85,6 +85,20 @@ impl Prop {
         parser.skip_token()?;
         parser.parse_prop(atoms)
     }
+
+    pub fn premise(&self) -> Option<&Rc<Prop>> {
+        match self {
+            Prop::To(x, _) => Some(x),
+            _ => None,
+        }
+    }
+
+    pub fn conclusion(&self) -> Option<&Rc<Prop>> {
+        match self {
+            Prop::To(_, x) => Some(x),
+            _ => None,
+        }
+    }
 }
 
 fn display_unop<A: Display>(

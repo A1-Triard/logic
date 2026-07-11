@@ -9,6 +9,12 @@ use prop::Prop;
 mod axioms;
 use axioms::*;
 
+mod proof;
+use proof::Proof;
+
+mod proofs;
+use proofs::*;
+
 fn read_prop<'a>(
     line: &'a mut String, atoms: (&mut Vec<&'a str>, &mut HashMap<&'a str, usize>)
 ) -> Result<Prop, ExitCode> {
@@ -43,16 +49,8 @@ fn main() -> ExitCode {
         Ok(p) => Rc::new(p),
         Err(e) => return e,
     };
-    println!("{}", axiom_1(a.clone(), b.clone()).display(&atoms));
-    println!("{}", axiom_2(a.clone(), b.clone(), c.clone()).display(&atoms));
-    println!("{}", axiom_3(a.clone(), b.clone()).display(&atoms));
-    println!("{}", axiom_4(a.clone(), b.clone()).display(&atoms));
-    println!("{}", axiom_5(a.clone(), b.clone()).display(&atoms));
-    println!("{}", axiom_6(a.clone(), b.clone()).display(&atoms));
-    println!("{}", axiom_7(a.clone(), b.clone()).display(&atoms));
-    println!("{}", axiom_8(a.clone(), b.clone(), c).display(&atoms));
-    println!("{}", axiom_9(a.clone(), b.clone()).display(&atoms));
-    println!("{}", axiom_10(a.clone(), b).display(&atoms));
-    println!("{}", axiom_11(a).display(&atoms));
+    let mut proof = Proof::new();
+    prove_a_to_a(a, &mut proof);
+    print!("{}", proof.display(&atoms));
     ExitCode::SUCCESS
 }
