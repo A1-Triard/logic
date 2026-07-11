@@ -49,9 +49,8 @@ fn main() -> ExitCode {
         Err(e) => return e,
     };
     let mut proof = Proof::new();
-    let not_a = proof.prove_hypothesis(Rc::new(Prop::Not(a.clone())));
-    let not_b = proof.prove_hypothesis(Rc::new(Prop::Not(b.clone())));
-    prove_a_nor_b(&mut proof, not_a, not_b);
+    let a_to_b = proof.prove_hypothesis(Rc::new(Prop::To(a.clone(), b.clone())));
+    prove_a_nand_not_b(&mut proof, a_to_b);
     print!("{}", proof.display(&atoms));
     ExitCode::SUCCESS
 }

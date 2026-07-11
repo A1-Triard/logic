@@ -107,3 +107,39 @@ pub fn prove_a_nor_b(proof: &mut Proof, not_a: isize, not_b: isize) -> isize {
     let z = proof.modus_ponens(not_a, y);
     proof.modus_ponens(z, x)
 }
+
+pub fn prove_not_a_nand_b(proof: &mut Proof, b_to_a: isize) -> isize {
+    let b_to_a_pr = proof.prop(b_to_a).clone();
+    let a = proof.prop(b_to_a).conclusion().expect("invalid implication").clone();
+    let b = proof.prop(b_to_a).premise().expect("invalid implication").clone();
+    let not_a = Rc::new(Prop::Not(a.clone()));
+    let not_a_and_b = Rc::new(Prop::And(not_a.clone(), b.clone()));
+    let p = proof.prove_axiom(Rc::new(axiom_1(b_to_a_pr.clone(), not_a_and_b.clone())), 1);
+    let q = proof.modus_ponens(b_to_a, p); // ~a & b -> b -> a
+    let r = proof.prove_axiom(Rc::new(axiom_2(not_a_and_b.clone(), b.clone(), a.clone())), 2);
+    let s = proof.modus_ponens(q, r);
+    let t = proof.prove_axiom(Rc::new(axiom_4(not_a.clone(), b.clone())), 4);
+    let u = proof.modus_ponens(t, s); // ~a & b -> a
+    let v = proof.prove_axiom(Rc::new(axiom_3(not_a.clone(), b.clone())), 3);
+    let w = proof.prove_axiom(Rc::new(axiom_10(not_a_and_b, a)), 10);
+    let x = proof.modus_ponens(u, w);
+    proof.modus_ponens(v, x)
+}
+
+pub fn prove_a_nand_not_b(proof: &mut Proof, a_to_b: isize) -> isize {
+    let a_to_b_pr = proof.prop(a_to_b).clone();
+    let a = proof.prop(a_to_b).premise().expect("invalid implication").clone();
+    let b = proof.prop(a_to_b).conclusion().expect("invalid implication").clone();
+    let not_b = Rc::new(Prop::Not(b.clone()));
+    let a_and_not_b = Rc::new(Prop::And(a.clone(), not_b.clone()));
+    let p = proof.prove_axiom(Rc::new(axiom_1(a_to_b_pr.clone(), a_and_not_b.clone())), 1);
+    let q = proof.modus_ponens(a_to_b, p); // a & ~b -> a -> b
+    let r = proof.prove_axiom(Rc::new(axiom_2(a_and_not_b.clone(), a.clone(), b.clone())), 2);
+    let s = proof.modus_ponens(q, r); // (a & ~b -> a) -> (a & ~b -> b)
+    let t = proof.prove_axiom(Rc::new(axiom_3(a.clone(), not_b.clone())), 3);
+    let u = proof.modus_ponens(t, s); // a & ~b -> b
+    let v = proof.prove_axiom(Rc::new(axiom_4(a.clone(), not_b)), 4);
+    let w = proof.prove_axiom(Rc::new(axiom_10(a_and_not_b, b)), 10);
+    let x = proof.modus_ponens(u, w);
+    proof.modus_ponens(v, x)
+}
