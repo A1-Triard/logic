@@ -14,6 +14,8 @@ use proof::Proof;
 mod proofs;
 use proofs::*;
 
+mod truth_table;
+
 fn read_prop<'a>(
     line: &'a mut String, atoms: (&mut Vec<&'a str>, &mut HashMap<&'a str, usize>)
 ) -> Result<Prop, ExitCode> {

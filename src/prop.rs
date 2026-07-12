@@ -107,6 +107,16 @@ impl Prop {
             _ => None,
         }
     }
+
+    pub fn calc(&self, atoms: &[bool]) -> bool {
+        match self {
+            &Prop::Atom(a) => atoms[a],
+            Prop::Not(a) => !a.calc(atoms),
+            Prop::And(a, b) => a.calc(atoms) && b.calc(atoms),
+            Prop::Or(a, b) => a.calc(atoms) || b.calc(atoms),
+            Prop::To(a, b) => !a.calc(atoms) || b.calc(atoms),
+        }
+    }
 }
 
 fn display_unop<A: Display>(
