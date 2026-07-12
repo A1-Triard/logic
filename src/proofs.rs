@@ -108,6 +108,44 @@ pub fn prove_a_nor_b(proof: &mut Proof, not_a: isize, not_b: isize) -> isize {
     proof.modus_ponens(z, x)
 }
 
+pub fn prove_a_nor_not_b(proof: &mut Proof, not_a: isize, b: isize) -> isize {
+    let not_a_pr = proof.prop(not_a).clone();
+    let b_pr = proof.prop(b).clone();
+    let a = not_a_pr.not_arg().expect("invalid negation");
+    let not_b = Rc::new(Prop::Not(b_pr.clone()));
+    let a_or_not_b = Rc::new(Prop::Or(a.clone(), not_b.clone()));
+    let p = proof.prove_axiom(Rc::new(axiom_9(a.clone(), not_b.clone())), 9);
+    let q = proof.modus_ponens(not_a, p); // a -> ~b
+    let r = proof.prove_a_to_a(not_b.clone());
+    let s = proof.prove_axiom(Rc::new(axiom_8(a.clone(), not_b.clone(), not_b.clone())), 8);
+    let t = proof.modus_ponens(q, s);
+    let u = proof.modus_ponens(r, t); // a | ~b -> ~b
+    let v = proof.prove_axiom(Rc::new(axiom_1(b_pr.clone(), a_or_not_b.clone())), 1);
+    let w = proof.modus_ponens(b, v); // a | ~b -> b
+    let x = proof.prove_axiom(Rc::new(axiom_10(a_or_not_b, b_pr)), 10);
+    let y = proof.modus_ponens(w, x);
+    proof.modus_ponens(u, y)
+}
+
+pub fn prove_not_a_nor_b(proof: &mut Proof, a: isize, not_b: isize) -> isize {
+    let a_pr = proof.prop(a).clone();
+    let not_b_pr = proof.prop(not_b).clone();
+    let not_a = Rc::new(Prop::Not(a_pr.clone()));
+    let b = not_b_pr.not_arg().expect("invalid negation");
+    let not_a_or_b = Rc::new(Prop::Or(not_a.clone(), b.clone()));
+    let p = proof.prove_axiom(Rc::new(axiom_9(b.clone(), not_a.clone())), 9);
+    let q = proof.modus_ponens(not_b, p); // b -> ~a
+    let r = proof.prove_a_to_a(not_a.clone());
+    let s = proof.prove_axiom(Rc::new(axiom_8(not_a.clone(), b.clone(), not_a.clone())), 8);
+    let t = proof.modus_ponens(r, s);
+    let u = proof.modus_ponens(q, t); // ~a | b -> ~a
+    let v = proof.prove_axiom(Rc::new(axiom_1(a_pr.clone(), not_a_or_b.clone())), 1);
+    let w = proof.modus_ponens(a, v); // ~a | b -> a
+    let x = proof.prove_axiom(Rc::new(axiom_10(not_a_or_b, a_pr)), 10);
+    let y = proof.modus_ponens(w, x);
+    proof.modus_ponens(u, y)
+}
+
 pub fn prove_not_a_nand_b(proof: &mut Proof, b_to_a: isize) -> isize {
     let b_to_a_pr = proof.prop(b_to_a).clone();
     let a = b_to_a_pr.conclusion().expect("invalid implication").clone();
@@ -160,4 +198,40 @@ pub fn prove_a_nand_b(proof: &mut Proof, a_to_not_b: isize) -> isize {
     let w = proof.prove_axiom(Rc::new(axiom_10(a_and_b, b.clone())), 10);
     let x = proof.modus_ponens(v, w);
     proof.modus_ponens(u, x)
+}
+
+pub fn prove_a_nto_not_b(proof: &mut Proof, a: isize, b: isize) -> isize {
+    let a_pr = proof.prop(a).clone();
+    let b_pr = proof.prop(b).clone();
+    let not_b = Rc::new(Prop::Not(b_pr.clone()));
+    let a_to_not_b = Rc::new(Prop::To(a_pr.clone(), not_b.clone()));
+    let p = proof.prove_axiom(Rc::new(axiom_2(a_to_not_b.clone(), a_pr.clone(), not_b.clone())), 2);
+    let q = proof.prove_a_to_a(a_to_not_b.clone());
+    let r = proof.modus_ponens(q, p); // ((a -> ~b) -> a) -> ((a -> ~b) -> ~b)
+    let s = proof.prove_axiom(Rc::new(axiom_1(a_pr.clone(), a_to_not_b.clone())), 1);
+    let t = proof.modus_ponens(a, s); // (a -> ~b) -> a
+    let u = proof.modus_ponens(t, r); // (a -> ~b) -> ~b
+    let v = proof.prove_axiom(Rc::new(axiom_1(b_pr.clone(), a_to_not_b.clone())), 1);
+    let w = proof.modus_ponens(b, v); // (a -> ~b) -> b
+    let x = proof.prove_axiom(Rc::new(axiom_10(a_to_not_b, b_pr)), 10);
+    let y = proof.modus_ponens(w, x);
+    proof.modus_ponens(u, y)
+}
+
+pub fn prove_a_nto_b(proof: &mut Proof, a: isize, not_b: isize) -> isize {
+    let a_pr = proof.prop(a).clone();
+    let not_b_pr = proof.prop(not_b).clone();
+    let b = not_b_pr.not_arg().expect("invalid negation");
+    let a_to_b = Rc::new(Prop::To(a_pr.clone(), b.clone()));
+    let p = proof.prove_axiom(Rc::new(axiom_2(a_to_b.clone(), a_pr.clone(), b.clone())), 2);
+    let q = proof.prove_a_to_a(a_to_b.clone());
+    let r = proof.modus_ponens(q, p); // ((a -> b) -> a) -> ((a -> b) -> b)
+    let s = proof.prove_axiom(Rc::new(axiom_1(a_pr.clone(), a_to_b.clone())), 1);
+    let t = proof.modus_ponens(a, s); // (a -> b) -> a
+    let u = proof.modus_ponens(t, r); // (a -> b) -> b
+    let v = proof.prove_axiom(Rc::new(axiom_1(not_b_pr.clone(), a_to_b.clone())), 1);
+    let w = proof.modus_ponens(not_b, v); // (a -> b) -> ~b
+    let x = proof.prove_axiom(Rc::new(axiom_10(a_to_b, b.clone())), 10);
+    let y = proof.modus_ponens(u, x);
+    proof.modus_ponens(w, y)
 }
