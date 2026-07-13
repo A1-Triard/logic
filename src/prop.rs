@@ -1,5 +1,6 @@
 use hashbrown::HashMap;
 use hashbrown::hash_map::Entry;
+use std::cmp::max;
 use std::fmt::{self, Display, Formatter, Debug};
 use std::rc::Rc;
 
@@ -108,6 +109,34 @@ impl Prop {
         }
     }
 
+    pub fn or_left_arg(&self) -> Option<&Rc<Prop>> {
+        match self {
+            Prop::Or(x, _) => Some(x),
+            _ => None,
+        }
+    }
+
+    pub fn or_right_arg(&self) -> Option<&Rc<Prop>> {
+        match self {
+            Prop::Or(_, x) => Some(x),
+            _ => None,
+        }
+    }
+
+    pub fn and_left_arg(&self) -> Option<&Rc<Prop>> {
+        match self {
+            Prop::And(x, _) => Some(x),
+            _ => None,
+        }
+    }
+
+    pub fn and_right_arg(&self) -> Option<&Rc<Prop>> {
+        match self {
+            Prop::And(_, x) => Some(x),
+            _ => None,
+        }
+    }
+
     pub fn calc(&self, atoms: &[bool]) -> bool {
         match self {
             &Prop::Atom(a) => atoms[a],
@@ -115,6 +144,16 @@ impl Prop {
             Prop::And(a, b) => a.calc(atoms) && b.calc(atoms),
             Prop::Or(a, b) => a.calc(atoms) || b.calc(atoms),
             Prop::To(a, b) => !a.calc(atoms) || b.calc(atoms),
+        }
+    }
+
+    pub fn atoms_count(&self) -> usize {
+        match self {
+            &Prop::Atom(a) => a + 1,
+            Prop::Not(a) => a.atoms_count(),
+            Prop::And(a, b) => max(a.atoms_count(), b.atoms_count()),
+            Prop::Or(a, b) => max(a.atoms_count(), b.atoms_count()),
+            Prop::To(a, b) => max(a.atoms_count(), b.atoms_count()),
         }
     }
 }

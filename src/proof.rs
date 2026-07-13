@@ -104,6 +104,31 @@ impl Proof {
         self.modus_ponens(h_to_a, q)
     }
 
+    pub fn extend(
+        &mut self, proof: &Proof, h: &impl Fn(&Rc<Prop>) -> Option<isize>
+    ) -> Option<isize> {
+        let mut map = HashMap::new();
+        for &prop in &proof.list {
+            match &proof.props[prop].1 {
+                Reason::Hypothesis if let Some(h) = h(&proof.props[prop].0) => {
+                    map.insert(prop, h);
+                },
+                Reason::Hypothesis | Reason::Axiom(_) => {
+                    let p = self.props.insert(|id| (proof.props[prop].clone(), id));
+                    self.list.push(p);
+                    map.insert(prop, p);
+                },
+                &Reason::ModusPonens(a, a_to_b) => {
+                    let a = map[&a];
+                    let a_to_b = map[&a_to_b];
+                    let p = self.modus_ponens(a, a_to_b);
+                    map.insert(prop, p);
+                },
+            };
+        }
+        self.list.last().copied()
+    }
+
     pub fn prop(&self, i: isize) -> &Rc<Prop> {
         &self.props[i].0
     }

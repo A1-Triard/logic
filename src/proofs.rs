@@ -235,3 +235,86 @@ pub fn prove_a_nto_b(proof: &mut Proof, a: isize, not_b: isize) -> isize {
     let y = proof.modus_ponens(u, x);
     proof.modus_ponens(w, y)
 }
+
+pub fn prove_a_from_not_not_a(proof: &mut Proof, not_not_a: isize) -> isize {
+    let not_not_a_pr = proof.prop(not_not_a).clone();
+    let not_a = not_not_a_pr.not_arg().expect("invalid negation");
+    let a = not_a.not_arg().expect("invalid negation");
+    let p = proof.prove_axiom(Rc::new(axiom_9(not_a.clone(), a.clone())), 9);
+    let q = proof.modus_ponens(not_not_a, p); // ~a -> a
+    let r = proof.prove_a_to_a(a.clone());
+    let s = proof.prove_axiom(Rc::new(axiom_8(a.clone(), not_a.clone(), a.clone())), 8);
+    let t = proof.modus_ponens(r, s);
+    let u = proof.modus_ponens(q, t); // a | ~a -> a
+    let v = proof.prove_axiom(Rc::new(axiom_11(a.clone())), 11);
+    proof.modus_ponens(v, u)
+}
+
+pub fn prove_a_from_a_and_b(proof: &mut Proof, a_and_b: isize) -> isize {
+    let a_and_b_pr = proof.prop(a_and_b).clone();
+    let a = a_and_b_pr.and_left_arg().expect("invalid conjunction");
+    let b = a_and_b_pr.and_right_arg().expect("invalid conjunction");
+    let p = proof.prove_axiom(Rc::new(axiom_3(a.clone(), b.clone())), 3);
+    proof.modus_ponens(a_and_b, p)
+}
+
+pub fn prove_b_from_a_and_b(proof: &mut Proof, a_and_b: isize) -> isize {
+    let a_and_b_pr = proof.prop(a_and_b).clone();
+    let a = a_and_b_pr.and_left_arg().expect("invalid conjunction");
+    let b = a_and_b_pr.and_right_arg().expect("invalid conjunction");
+    let p = proof.prove_axiom(Rc::new(axiom_4(a.clone(), b.clone())), 3);
+    proof.modus_ponens(a_and_b, p)
+}
+
+pub fn prove_not_a_from_a_nor_b(proof: &mut Proof, a_nor_b: isize) -> isize {
+    let a_nor_b_pr = proof.prop(a_nor_b).clone();
+    let a_or_b = a_nor_b_pr.not_arg().expect("invalid negation");
+    let a = a_or_b.or_left_arg().expect("invalid conjunction");
+    let b = a_or_b.or_right_arg().expect("invalid conjunction");
+    let p = proof.prove_axiom(Rc::new(axiom_6(a.clone(), b.clone())), 6);
+    let q = proof.prove_axiom(Rc::new(axiom_1(a_nor_b_pr.clone(), a.clone())), 1);
+    let r = proof.modus_ponens(a_nor_b, q); // a -> ~(a | b)
+    let s = proof.prove_axiom(Rc::new(axiom_10(a.clone(), a_or_b.clone())), 10);
+    let t = proof.modus_ponens(p, s);
+    proof.modus_ponens(r, t)
+}
+
+pub fn prove_not_b_from_a_nor_b(proof: &mut Proof, a_nor_b: isize) -> isize {
+    let a_nor_b_pr = proof.prop(a_nor_b).clone();
+    let a_or_b = a_nor_b_pr.not_arg().expect("invalid negation");
+    let a = a_or_b.or_left_arg().expect("invalid conjunction");
+    let b = a_or_b.or_right_arg().expect("invalid conjunction");
+    let p = proof.prove_axiom(Rc::new(axiom_7(a.clone(), b.clone())), 7);
+    let q = proof.prove_axiom(Rc::new(axiom_1(a_nor_b_pr.clone(), b.clone())), 1);
+    let r = proof.modus_ponens(a_nor_b, q); // b -> ~(a | b)
+    let s = proof.prove_axiom(Rc::new(axiom_10(b.clone(), a_or_b.clone())), 10);
+    let t = proof.modus_ponens(p, s);
+    proof.modus_ponens(r, t)
+}
+
+pub fn prove_not_not_a_from_a_nto_b(proof: &mut Proof, a_nto_b: isize) -> isize {
+    let a_nto_b_pr = proof.prop(a_nto_b).clone();
+    let a_to_b = a_nto_b_pr.not_arg().expect("invalid negation");
+    let a = a_to_b.premise().expect("invalid implication");
+    let b = a_to_b.conclusion().expect("invalid implication");
+    let not_a = Rc::new(Prop::Not(a.clone()));
+    let p = proof.prove_axiom(Rc::new(axiom_9(a.clone(), b.clone())), 9);
+    let q = proof.prove_axiom(Rc::new(axiom_1(a_nto_b_pr.clone(), not_a.clone())), 1);
+    let r = proof.modus_ponens(a_nto_b, q); // ~a -> ~(a -> b)
+    let s = proof.prove_axiom(Rc::new(axiom_10(not_a, a_to_b.clone())), 10);
+    let t = proof.modus_ponens(p, s);
+    proof.modus_ponens(r, t)
+}
+
+pub fn prove_not_b_from_a_nto_b(proof: &mut Proof, a_nto_b: isize) -> isize {
+    let a_nto_b_pr = proof.prop(a_nto_b).clone();
+    let a_to_b = a_nto_b_pr.not_arg().expect("invalid negation");
+    let a = a_to_b.premise().expect("invalid implication");
+    let b = a_to_b.conclusion().expect("invalid implication");
+    let p = proof.prove_axiom(Rc::new(axiom_1(b.clone(), a.clone())), 1);
+    let q = proof.prove_axiom(Rc::new(axiom_1(a_nto_b_pr.clone(), b.clone())), 1);
+    let r = proof.modus_ponens(a_nto_b, q); // b -> ~(a -> b)
+    let s = proof.prove_axiom(Rc::new(axiom_10(b.clone(), a_to_b.clone())), 10);
+    let t = proof.modus_ponens(p, s);
+    proof.modus_ponens(r, t)
+}
